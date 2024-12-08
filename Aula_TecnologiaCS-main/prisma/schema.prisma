@@ -1,0 +1,88 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Categoria {
+  id           Int      @id @default(autoincrement())
+  tipo         String
+  valorLocacao Float
+  modelos      Modelo[]
+}
+
+model Marca {
+  id       Int       @id @default(autoincrement())
+  nome     String
+  modelos  Modelo[]
+  veiculos Veiculo[] // Adicionado para a relação bidirecional
+}
+
+model Modelo {
+  id          Int       @id @default(autoincrement())
+  nome        String
+  anoModelo   Int
+  qtModelo    Int
+  categoriaId Int
+  marcaId     Int
+  categoria   Categoria @relation(fields: [categoriaId], references: [id])
+  marca       Marca     @relation(fields: [marcaId], references: [id])
+  veiculos    Veiculo[]
+}
+
+model Veiculo {
+  id            Int               @id @default(autoincrement())
+  placa         String            @unique
+  chassi        String
+  anoFabricacao Int
+  cor           String
+  status        String
+  marcaId       Int
+  modeloId      Int
+  marca         Marca             @relation(fields: [marcaId], references: [id])
+  modelo        Modelo            @relation(fields: [modeloId], references: [id])
+  manutencoes   Manutencao[]
+  contratos     ContratoLocacao[]
+}
+
+model Manutencao {
+  id              Int      @id @default(autoincrement())
+  descricao       String
+  dataManutencao  DateTime
+  valorManutencao Float
+  veiculoId       Int
+  veiculo         Veiculo  @relation(fields: [veiculoId], references: [id])
+}
+
+model Ocorrencia {
+  id              Int             @id @default(autoincrement())
+  descricao       String
+  dataOcorrencia  DateTime
+  valorOcorrencia Float
+  contratoId      Int
+  contrato        ContratoLocacao @relation(fields: [contratoId], references: [id])
+}
+
+model ContratoLocacao {
+  id            Int          @id @default(autoincrement())
+  dataLocacao   DateTime
+  dataDevolucao DateTime
+  valorCaucao   Float
+  valorTotal    Float
+  status        String
+  veiculos      Veiculo[]
+  ocorrencias   Ocorrencia[]
+  pagamentos    Pagamento[]
+}
+
+model Pagamento {
+  id             Int             @id @default(autoincrement())
+  data           DateTime
+  valorPago      Float
+  formaPagamento String
+  contratoId     Int
+  contrato       ContratoLocacao @relation(fields: [contratoId], references: [id])
+}
